@@ -3,8 +3,12 @@ Create barebones Flask app
 Run with: python kickoff_app.py
 """
 
+import json
+import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from dotenv import load_dotenv
+import requests
 
 def create_app():
     """
@@ -103,6 +107,60 @@ def create_app():
             "docket_id": docket_id
            })
         return jsonify(response)
+
+    @app.route('/opensearch')
+    def opensearch():
+        response = {}
+
+        load_dotenv()
+
+        username = os.getenv("OPENSEARCH_USERNAME")
+        password = os.getenv("OPENSEARCH_PASSWORD")
+
+        # Obtains the search term
+        search_term = request.args.get('term')
+
+        # If a search term is not provided, the server will return this JSON and a 400 status code
+        if not search_term:
+            response['error'] = {'code': 400,
+                                 'message': 'Error: You must provide a term to be searched'}
+            return jsonify(response), 400
+
+        # If the search term is valid, data will be ingested into the JSON response
+        host = 'https://search-opensearch334-n6exkzbydhrfh64hs4jw4bo4h4.aos.us-east-1.on.aws'
+        index = "dockets"
+        url = f"{host}/{index}/_search"
+        query = {
+            "size": 25,
+            "query": {
+                "match": {
+                    "data.attributes.title": {
+                        "query": search_term,
+                        "fuzziness": "AUTO"
+                    }
+                }
+            }
+        }
+
+        headers = {"Content-Type": "application/json"}
+
+        try:
+            r = requests.get(url, auth=(username, password),
+                             headers=headers, data=json.dumps(query))
+            r.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            return e
+
+        return r.json()
+
+        # response['data']['dockets'].append({
+        #    'title': 'Designation as a Preexisting Subscription Service',
+        #    'id': "COLC-2006-0014",
+        #    'link': 'https://www.regulations.gov/docket/COLC-2006-0014',
+        #    'number_of_comments': 0,
+        #    'number_of_documents': 1
+        #    })
+        # return jsonify(response)
 
     return app
 
