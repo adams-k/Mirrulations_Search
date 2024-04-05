@@ -1,6 +1,5 @@
 """
-Create barebones Flask app
-Run with: python kickoff_app.py
+Flask app for the Mirrsearch API
 """
 
 import json
