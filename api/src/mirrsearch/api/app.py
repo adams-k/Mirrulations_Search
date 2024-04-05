@@ -135,22 +135,31 @@ def create_app(query_manager):
         headers = {"Content-Type": "application/json"}
 
         try:
-            r = requests.get(url, auth=(username, password),
-                             headers=headers, data=json.dumps(query))
-            r.raise_for_status()
+            dockets = requests.get(url, auth=(username, password),
+                             headers=headers, data=json.dumps(query), timeout=60)
+            dockets.raise_for_status()
         except requests.exceptions.RequestException as e:
             return e
 
-        return r.json()
+        dockets = dockets.json()
+        response['data'] = {
+                'dockets': []
+            }
+        for docket in dockets["hits"]["hits"]:
+            response['data']['dockets'].append({
+                'title': docket["_source"]["data"]["attributes"]["title"],
+                'id': docket["_source"]["data"]["id"],
+                'link': docket["_source"]["data"]["links"]["self"],
+                'docket_type': docket["_source"]["data"]["attributes"]["docketType"],
+                'documents_containing': 0,
+                'total_documents': 0,
+                'date_range': 'null',
+                'comment_date_range': "null",
+                'comments_containing': 0,
+                'total_comments': 0,
+            })
 
-        # response['data']['dockets'].append({
-        #    'title': 'Designation as a Preexisting Subscription Service',
-        #    'id': "COLC-2006-0014",
-        #    'link': 'https://www.regulations.gov/docket/COLC-2006-0014',
-        #    'number_of_comments': 0,
-        #    'number_of_documents': 1
-        #    })
-        # return jsonify(response)
+        return jsonify(response)
 
     return app
 

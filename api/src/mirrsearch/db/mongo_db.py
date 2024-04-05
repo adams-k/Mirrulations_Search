@@ -8,6 +8,7 @@ import json
 import sys
 from pymongo import MongoClient
 
+URI = 'mongodb://localhost:27017'
 
 def connect_to_mongodb():
     """ Function to connect to MongoDB and ensure collections exist """
@@ -78,7 +79,6 @@ def add_data_to_database(root_folder, database):
 
 if __name__ == "__main__":
     data_folder = sys.argv[1]
-    URI = 'mongodb://localhost:27017'
     database, client = connect_to_mongodb()
     add_data_to_database(data_folder, database)
     client.close()

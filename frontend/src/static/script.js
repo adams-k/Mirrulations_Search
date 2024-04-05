@@ -37,4 +37,16 @@ export const getDummyDataDemo = async () => {
  }
 };
 
+export const getOpenSearchData = async (searchTerm) => {
+ try {
+  const search = URL + "/api/opensearch?term=" + searchTerm;
+  const response = await fetch(search);
+  const data = await response.json();
+  console.log(data);
+  return data;
+ } catch (error) {
+  console.error("Error calling the endpoint:", error);
+ }
+};
+
 // export default [getDummyData, getDummyDataDemo];
